@@ -1,6 +1,9 @@
 plugins {
     id 'java'
     id 'application'
+    id 'org.springframework.boot' version '2.6.7'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id "com.github.node-gradle.node" version "3.2.1"
 }
 
 group 'at.fhv.lab2'
@@ -9,8 +12,23 @@ version '1.0-SNAPSHOT'
 repositories {
     mavenCentral()
 }
+npm_run_build {
+    inputs.files fileTree("src/main/js/smart-house-controll-panel/public")
+    inputs.files fileTree("src/main/js/smart-house-controll-panel/src")
+
+    inputs.file 'src/main/js/smart-house-controll-panel/package.json'
+    inputs.file 'src/main/js/smart-house-controll-panel/package-lock.json'
+
+    outputs.dir 'src/main/js/smart-house-controll-panel/build'
+}
+
+node {
+    nodeProjectDir = file("src/main/js/smart-house-controll-panel")
+}
 
 dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
     implementation 'com.typesafe.akka:akka-actor-typed_2.13:2.6.10'
     implementation 'com.typesafe.akka:akka-actor-testkit-typed_2.13:2.6.10'
     implementation 'ch.qos.logback:logback-classic:1.2.3'
@@ -23,7 +41,12 @@ application {
 }
 
 run {
+    dependsOn tasks.npm_start
     standardInput = System.in
+}
+
+build {
+    dependsOn tasks.npm_run_build
 }
 
 test {
