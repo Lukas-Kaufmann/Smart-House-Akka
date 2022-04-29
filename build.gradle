@@ -39,7 +39,6 @@ application {
 }
 
 run {
-    dependsOn tasks.npm_start
     standardInput = System.in
 }
 

@@ -15,6 +15,7 @@ public class TemperatureSensor extends AbstractBehavior<TemperatureSensor.Temper
     public interface TemperatureCommand {}
 
     public static final class ReadTemperature implements TemperatureCommand {
+        //TODO change implementation
         final Optional<Double> value;
 
         public ReadTemperature(Optional<Double> value) {

@@ -10,6 +10,7 @@ public class HomeAutomationSystem {
 
     public static void main(String[] args) {
         SpringApplication.run(HomeAutomationSystem.class);
+        
         ActorSystem<Void> home = ActorSystem.create(HomeAutomationController.create(), "HomeAutomation");
     }
 }
