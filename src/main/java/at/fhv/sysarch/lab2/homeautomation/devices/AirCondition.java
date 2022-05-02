@@ -1,11 +1,10 @@
 package at.fhv.sysarch.lab2.homeautomation.devices;
 
+import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.PostStop;
-import akka.actor.typed.javadsl.AbstractBehavior;
-import akka.actor.typed.javadsl.ActorContext;
-import akka.actor.typed.javadsl.Behaviors;
-import akka.actor.typed.javadsl.Receive;
+import akka.actor.typed.javadsl.*;
+import at.fhv.sysarch.lab2.homeautomation.simulator.TemperatureSimulator;
 
 /**
  * This class shows ONE way to switch behaviors in object-oriented style. Another approach is the use of static
@@ -17,24 +16,27 @@ import akka.actor.typed.javadsl.Receive;
  * For an example with functional-style please refer to: {@link https://doc.akka.io/docs/akka/current/typed/style-guide.html#functional-versus-object-oriented-style}
  *
  */
+import java.time.Duration;
 import java.util.Optional;
 
 public class AirCondition extends AbstractBehavior<AirCondition.AirConditionCommand> {
     public interface AirConditionCommand {}
 
     public static final class PowerAirCondition implements AirConditionCommand {
-        final Optional<Boolean> value;
+        final Boolean value;
 
-        public PowerAirCondition(Optional<Boolean> value) {
+        public PowerAirCondition(Boolean value) {
             this.value = value;
         }
     }
 
-    public static final class EnrichedTemperature implements AirConditionCommand {
-        Optional<Double> value;
-        Optional<String> unit;
+    public static final class CheckTemperature implements AirConditionCommand {}
 
-        public EnrichedTemperature(Optional<Double> value, Optional<String> unit) {
+    public static final class EnrichedTemperature implements AirConditionCommand {
+        Double value;
+        String unit;
+
+        public EnrichedTemperature(Double value, String unit) {
             this.value = value;
             this.unit = unit;
         }
@@ -44,31 +46,43 @@ public class AirCondition extends AbstractBehavior<AirCondition.AirConditionComm
     private final String deviceId;
     private boolean active = false;
     private boolean poweredOn = true;
+    private ActorRef<TemperatureSimulator.TempSimCommand> sensor;
+    private TimerScheduler<AirConditionCommand> timer;
 
-    public AirCondition(ActorContext<AirConditionCommand> context, String groupId, String deviceId) {
+    public AirCondition(ActorContext<AirConditionCommand> context, String groupId, String deviceId, ActorRef<TemperatureSimulator.TempSimCommand> tempSensor, TimerScheduler<AirConditionCommand> timer) {
         super(context);
         this.groupId = groupId;
         this.deviceId = deviceId;
+        this.sensor = tempSensor;
+        this.timer = timer;
+        timer.startTimerWithFixedDelay(new CheckTemperature(), Duration.ofSeconds(15));
         getContext().getLog().info("AirCondition started");
     }
 
-    public static Behavior<AirConditionCommand> create(String groupId, String deviceId) {
-        return Behaviors.setup(context -> new AirCondition(context, groupId, deviceId));
+    public static Behavior<AirConditionCommand> create(String groupId, String deviceId, ActorRef<TemperatureSimulator.TempSimCommand> tempSensor) {
+        return Behaviors.setup(context -> Behaviors.withTimers(timer -> new AirCondition(context, groupId, deviceId, tempSensor, timer)));
     }
 
     @Override
     public Receive<AirConditionCommand> createReceive() {
         return newReceiveBuilder()
-                .onMessage(EnrichedTemperature.class, this::onReadTemperature)
+                .onMessage(EnrichedTemperature.class, this::onReceiveTemperature)
                 .onMessage(PowerAirCondition.class, this::onPowerAirConditionOff)
+                .onMessage(CheckTemperature.class, this::checkTemperature)
                 .onSignal(PostStop.class, signal -> onPostStop())
                 .build();
     }
 
-    private Behavior<AirConditionCommand> onReadTemperature(EnrichedTemperature r) {
-        getContext().getLog().info("Aircondition reading {}", r.value.get());
+    private Behavior<AirConditionCommand> checkTemperature(CheckTemperature msg) {
+        this.sensor.tell(new TemperatureSimulator.GetTemperature(getContext().getSelf().narrow()));
+
+        return Behaviors.same();
+    }
+
+    private Behavior<AirConditionCommand> onReceiveTemperature(EnrichedTemperature r) {
+        getContext().getLog().info("Aircondition reading {}", r.value);
         // TODO: process temperature
-        if(r.value.get() >= 15) {
+        if(r.value >= 15) {
             getContext().getLog().info("Aircondition actived");
             this.active = true;
         }
@@ -82,8 +96,8 @@ public class AirCondition extends AbstractBehavior<AirCondition.AirConditionComm
 
     private Behavior<AirConditionCommand> onPowerAirConditionOff(PowerAirCondition r) {
         getContext().getLog().info("Turning Aircondition to {}", r.value);
-
-        if(r.value.get() == false) {
+        this.timer.cancelAll();
+        if(r.value == false) {
             return this.powerOff();
         }
         return this;
@@ -91,10 +105,10 @@ public class AirCondition extends AbstractBehavior<AirCondition.AirConditionComm
 
     private Behavior<AirConditionCommand> onPowerAirConditionOn(PowerAirCondition r) {
         getContext().getLog().info("Turning Aircondition to {}", r.value);
-
-        if(r.value.get() == true) {
+        this.timer.startTimerWithFixedDelay(new CheckTemperature(), Duration.ofSeconds(15));
+        if(r.value == true) {
             return Behaviors.receive(AirConditionCommand.class)
-                    .onMessage(EnrichedTemperature.class, this::onReadTemperature)
+                    .onMessage(EnrichedTemperature.class, this::onReceiveTemperature)
                     .onMessage(PowerAirCondition.class, this::onPowerAirConditionOff)
                     .onSignal(PostStop.class, signal -> onPostStop())
                     .build();

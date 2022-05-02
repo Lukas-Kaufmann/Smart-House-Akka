@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1")
-@Component
 public class ControlPanelRestControllerImpl implements ControlPanelRestController {
 
     private ActorRef<UI.UICommand> actor;

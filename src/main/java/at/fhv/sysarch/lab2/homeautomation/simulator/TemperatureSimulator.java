@@ -4,10 +4,9 @@ import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.PostStop;
 import akka.actor.typed.javadsl.*;
-import at.fhv.sysarch.lab2.homeautomation.devices.TemperatureSensor;
+import at.fhv.sysarch.lab2.homeautomation.devices.AirCondition;
 
 import java.time.Duration;
-import java.util.Optional;
 import java.util.Random;
 
 public class TemperatureSimulator extends AbstractBehavior<TemperatureSimulator.TempSimCommand> {
@@ -16,20 +15,22 @@ public class TemperatureSimulator extends AbstractBehavior<TemperatureSimulator.
     public static final class SetTemperatureRandomly implements TempSimCommand {}
 
     public static final class SetTemperatureTo implements TempSimCommand {
-        Optional<Double> value;
+        Double value;
 
-        public SetTemperatureTo(Optional<Double> value) {
+        public SetTemperatureTo(Double value) {
             this.value = value;
         }
     }
 
     public static final class GetTemperature implements TempSimCommand {
-        ActorRef<TemperatureSensor.ReadTemperature> recipient;
+        ActorRef<AirCondition.EnrichedTemperature> recipient;
 
-        public GetTemperature(ActorRef<TemperatureSensor.ReadTemperature> recipient) {
+        public GetTemperature(ActorRef<AirCondition.EnrichedTemperature> recipient) {
             this.recipient = recipient;
         }
     }
+
+    public static final class RandomTemperatureStep implements TempSimCommand {}
 
     public static Behavior<TempSimCommand> create(String groupId, String deviceId) {
         return Behaviors.setup(context -> Behaviors.withTimers(timer -> new TemperatureSimulator(context, groupId, deviceId, timer)));
@@ -44,7 +45,6 @@ public class TemperatureSimulator extends AbstractBehavior<TemperatureSimulator.
     private String unit;
     private TimerScheduler<TempSimCommand> timer;
 
-
     public TemperatureSimulator(ActorContext<TempSimCommand> context, String groupId, String deviceId, TimerScheduler<TempSimCommand> timer) {
         super(context);
         this.groupId = groupId;
@@ -52,7 +52,7 @@ public class TemperatureSimulator extends AbstractBehavior<TemperatureSimulator.
         this.temperature = 15f;
         this.unit = "Celsius";
         this.timer = timer;
-        
+        this.timer.startTimerWithFixedDelay(new RandomTemperatureStep(), Duration.ofSeconds(3));
     }
 
     @Override
@@ -61,24 +61,36 @@ public class TemperatureSimulator extends AbstractBehavior<TemperatureSimulator.
                 .onMessage(SetTemperatureTo.class, this::onTemperatureSet)
                 .onMessage(GetTemperature.class, this::onGetTemperature)
                 .onMessage(SetTemperatureRandomly.class, this::onRandomTemperature)
+                .onMessage(RandomTemperatureStep.class, this::onRandomStep)
                 .onSignal(PostStop.class, signal -> onPostStop())
                 .build();
     }
 
+    private Behavior<TempSimCommand> onRandomStep(RandomTemperatureStep msg) {
+        double randomStep = new Random().nextDouble() * 6 - 3;
+        double newTemp = this.temperature + randomStep;
+        newTemp = Math.max(newTemp, MIN_TEMP);
+        newTemp = Math.min(newTemp, MAX_TEMP);
+        this.temperature = newTemp;
+        getContext().getLog().info("Randomly set temperature to {}", this.temperature);
+        return Behaviors.same();
+    }
+
     private Behavior<TempSimCommand> onRandomTemperature(SetTemperatureRandomly msg) {
-        //TODO
+        this.timer.startTimerWithFixedDelay(new RandomTemperatureStep(), Duration.ofSeconds(5));
         getContext().getLog().info("Setting temperature now randomly");
         return Behaviors.same();
     }
 
     private Behavior<TempSimCommand> onGetTemperature(GetTemperature msg) {
-        msg.recipient.tell(new TemperatureSensor.ReadTemperature(Optional.of(this.temperature)));
+        msg.recipient.tell(new AirCondition.EnrichedTemperature(this.temperature, this.unit));
         getContext().getLog().info("TemperatureSimulator responded with temperature {}", this.temperature);
         return Behaviors.same();
     }
 
     private Behavior<TempSimCommand> onTemperatureSet(SetTemperatureTo msg) {
-        this.temperature = msg.value.get();
+        this.timer.cancelAll();
+        this.temperature = msg.value;
         getContext().getLog().info("TemperatureSimulator set temperature to {}", this.temperature);
         return Behaviors.same();
     }
