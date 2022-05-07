@@ -8,6 +8,7 @@ import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import at.fhv.sysarch.lab2.homeautomation.devices.AirCondition;
+import at.fhv.sysarch.lab2.homeautomation.devices.MediaStation;
 import at.fhv.sysarch.lab2.homeautomation.simulator.TemperatureSimulator;
 
 import java.util.Scanner;
@@ -25,17 +26,19 @@ public class UI extends AbstractBehavior<UI.UICommand> {
 
     private ActorRef<AirCondition.AirConditionCommand> airCondition;
     private ActorRef<TemperatureSimulator.TempSimCommand> tempSimulator;
+    private ActorRef<MediaStation.MediaCommand> mediaStation;
 
-    public static Behavior<UICommand> create(ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<TemperatureSimulator.TempSimCommand> tempSimulator) {
-        return Behaviors.setup(context -> new UI(context, airCondition, tempSimulator));
+    public static Behavior<UICommand> create(ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<TemperatureSimulator.TempSimCommand> tempSimulator, ActorRef<MediaStation.MediaCommand> mediaStation) {
+        return Behaviors.setup(context -> new UI(context, airCondition, tempSimulator, mediaStation));
     }
 
-    private UI(ActorContext<UICommand> context, ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<TemperatureSimulator.TempSimCommand> tempSimulator) {
+    private UI(ActorContext<UICommand> context, ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<TemperatureSimulator.TempSimCommand> tempSimulator, ActorRef<MediaStation.MediaCommand> mediaStation) {
         super(context);
         // TODO: implement actor and behavior as needed
         // TODO: move UI initialization to appropriate place
         this.airCondition = airCondition;
         this.tempSimulator = tempSimulator;
+        this.mediaStation = mediaStation;
         new Thread(() -> this.runCommandLine() ).start();
 
         getContext().getLog().info("UI started");
@@ -73,6 +76,17 @@ public class UI extends AbstractBehavior<UI.UICommand> {
             }
             if(command[0].equals("a")) {
                 this.airCondition.tell(new AirCondition.PowerAirCondition(Boolean.valueOf(command[1])));
+
+            }
+            if (command[0].equals("watch")) {
+                if (command[1].equals("start")) {
+                    System.out.println("got here start");
+                    this.mediaStation.tell(new MediaStation.PlayMovie());
+                }
+                if (command[1].equals("stop")) {
+                    System.out.println("got here stop");
+                    this.mediaStation.tell(new MediaStation.StopMovie());
+                }
             }
             // TODO: process Input
         }
