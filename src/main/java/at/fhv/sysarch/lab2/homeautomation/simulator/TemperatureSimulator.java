@@ -10,6 +10,9 @@ import java.time.Duration;
 import java.util.Random;
 
 public class TemperatureSimulator extends AbstractBehavior<TemperatureSimulator.TempSimCommand> {
+
+    public static ActorRef<TempSimCommand> instanceRef;
+
     public interface TempSimCommand {}
 
     public static final class SetTemperatureRandomly implements TempSimCommand {}
@@ -53,6 +56,7 @@ public class TemperatureSimulator extends AbstractBehavior<TemperatureSimulator.
         this.unit = "Celsius";
         this.timer = timer;
         this.timer.startTimerWithFixedDelay(new RandomTemperatureStep(), Duration.ofSeconds(3));
+        instanceRef = getContext().getSelf();
     }
 
     @Override
