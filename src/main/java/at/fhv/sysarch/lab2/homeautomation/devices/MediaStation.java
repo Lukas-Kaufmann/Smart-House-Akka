@@ -7,6 +7,8 @@ import akka.actor.typed.Signal;
 import akka.actor.typed.javadsl.*;
 
 public class MediaStation extends AbstractBehavior<MediaStation.MediaCommand> {
+    public static ActorRef<MediaCommand> instanceRef;
+
     public interface MediaCommand {}
 
     public static class PlayMovie implements MediaCommand {
@@ -23,6 +25,7 @@ public class MediaStation extends AbstractBehavior<MediaStation.MediaCommand> {
     public MediaStation(ActorContext<MediaCommand> context, ActorRef<Blinds.BlindsCommand> blinds) {
         super(context);
         this.blinds = blinds;
+        instanceRef = getContext().getSelf();
     }
 
     public static Behavior<MediaCommand> create(ActorRef<Blinds.BlindsCommand> blinds) {

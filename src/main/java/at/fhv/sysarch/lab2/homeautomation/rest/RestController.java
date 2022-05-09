@@ -1,6 +1,7 @@
 package at.fhv.sysarch.lab2.homeautomation.rest;
 
 import at.fhv.sysarch.lab2.homeautomation.devices.AirCondition;
+import at.fhv.sysarch.lab2.homeautomation.devices.MediaStation;
 import at.fhv.sysarch.lab2.homeautomation.simulator.TemperatureSimulator;
 import at.fhv.sysarch.lab2.homeautomation.simulator.WeatherSimulator;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -59,6 +60,17 @@ public class RestController {
         }
         WeatherSimulator.instanceRef.tell(new WeatherSimulator.SetWeather(w));
         return "Ok";
+    }
+
+    @GetMapping("/startMovie")
+    public String startMovie() {
+        MediaStation.instanceRef.tell(new MediaStation.PlayMovie());
+        return "Ok";
+    }
+    @GetMapping("/stopMovie")
+    public String stopMovie() {
+        MediaStation.instanceRef.tell(new MediaStation.StopMovie());
+        return "OK";
     }
 
 }
