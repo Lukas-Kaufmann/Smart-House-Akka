@@ -1,6 +1,7 @@
 import React from 'react';
 import AirconditionControls from "./AirconditionControls";
 import TemperatureControls from "./TemperatureControls";
+import WeatherControls from "./WeatherControls";
 
 function ControlPanel() {
 
@@ -12,6 +13,7 @@ function ControlPanel() {
 
             <AirconditionControls/>
             <TemperatureControls/>
+            <WeatherControls/>
         </div>
     );
 }

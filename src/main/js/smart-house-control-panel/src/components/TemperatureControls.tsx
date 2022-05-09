@@ -26,7 +26,7 @@ function TemperatureControls() {
             <h3>Temperature</h3>
             <ToggleButtonGroup exclusive value={alignment} onChange={handleAlignment} >
                 <ToggleButton value={"on"} onClick={() => fetch("http://localhost:8080/randomTemp")}>Random</ToggleButton>
-                <ToggleButton value={"fixed"} ><Input value={tempInput} onInput={e => setTempInput((e.target as HTMLInputElement).value)} onKeyDown={e => keyDownHandler(e)} /></ToggleButton>
+                <ToggleButton value={"fixed"} ><Input value={tempInput} placeholder={"write number + enter"} onInput={e => setTempInput((e.target as HTMLInputElement).value)} onKeyDown={e => keyDownHandler(e)} /></ToggleButton>
             </ToggleButtonGroup>
         </>
     )

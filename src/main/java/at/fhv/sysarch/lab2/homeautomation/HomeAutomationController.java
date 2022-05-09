@@ -11,7 +11,7 @@ import at.fhv.sysarch.lab2.homeautomation.devices.AirCondition;
 import at.fhv.sysarch.lab2.homeautomation.devices.Blinds;
 import at.fhv.sysarch.lab2.homeautomation.devices.MediaStation;
 import at.fhv.sysarch.lab2.homeautomation.simulator.TemperatureSimulator;
-import at.fhv.sysarch.lab2.homeautomation.ui.UI;
+import at.fhv.sysarch.lab2.homeautomation.simulator.WeatherSimulator;
 
 public class HomeAutomationController extends AbstractBehavior<Void>{
     private  ActorRef<AirCondition.AirConditionCommand> airCondition;
@@ -28,8 +28,8 @@ public class HomeAutomationController extends AbstractBehavior<Void>{
         this.airCondition = getContext().spawn(AirCondition.create("2", "1", this.tempSimulator), "AirCondition");
         ActorRef<Blinds.BlindsCommand> blinds = getContext().spawn(Blinds.create(), "Blinds");
         ActorRef<MediaStation.MediaCommand> mediaStation = getContext().spawn(MediaStation.create(blinds), "MediaStation");
+        ActorRef<WeatherSimulator.WeatherSimCommand> weatherSim = getContext().spawn(WeatherSimulator.create(), "WeatherSimulator");
 
-        ActorRef<UI.UICommand> ui = getContext().spawn(UI.create(this.airCondition, this.tempSimulator, mediaStation), "UI");
         getContext().getLog().info("HomeAutomation Application started");
     }
 
