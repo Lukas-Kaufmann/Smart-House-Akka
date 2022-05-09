@@ -1,9 +1,17 @@
 import React from 'react';
+import AirconditionControls from "./AirconditionControls";
+import TemperatureControls from "./TemperatureControls";
 
 function ControlPanel() {
+
+
     return (
         <div className="ControlPanel">
-            <p>Control panel, hello World</p>
+            <h1>Smart house Control Panel</h1>
+            <hr/>
+
+            <AirconditionControls/>
+            <TemperatureControls/>
         </div>
     );
 }

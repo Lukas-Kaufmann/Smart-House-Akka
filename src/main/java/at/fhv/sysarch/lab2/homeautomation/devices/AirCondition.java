@@ -20,6 +20,8 @@ import java.time.Duration;
 import java.util.Optional;
 
 public class AirCondition extends AbstractBehavior<AirCondition.AirConditionCommand> {
+    public static ActorRef<AirConditionCommand> instanceRef;
+
     public interface AirConditionCommand {}
 
     public static final class PowerAirCondition implements AirConditionCommand {
@@ -57,6 +59,7 @@ public class AirCondition extends AbstractBehavior<AirCondition.AirConditionComm
         this.timer = timer;
         timer.startTimerWithFixedDelay(new CheckTemperature(), Duration.ofSeconds(15));
         getContext().getLog().info("AirCondition started");
+        instanceRef = getContext().getSelf();
     }
 
     public static Behavior<AirConditionCommand> create(String groupId, String deviceId, ActorRef<TemperatureSimulator.TempSimCommand> tempSensor) {
@@ -95,18 +98,18 @@ public class AirCondition extends AbstractBehavior<AirCondition.AirConditionComm
     }
 
     private Behavior<AirConditionCommand> onPowerAirConditionOff(PowerAirCondition r) {
-        getContext().getLog().info("Turning Aircondition to {}", r.value);
         this.timer.cancelAll();
         if(r.value == false) {
+            getContext().getLog().info("Turning Aircondition off");
             return this.powerOff();
         }
         return this;
     }
 
     private Behavior<AirConditionCommand> onPowerAirConditionOn(PowerAirCondition r) {
-        getContext().getLog().info("Turning Aircondition to {}", r.value);
         this.timer.startTimerWithFixedDelay(new CheckTemperature(), Duration.ofSeconds(15));
         if(r.value == true) {
+            getContext().getLog().info("Turning Aircondition on");
             return Behaviors.receive(AirConditionCommand.class)
                     .onMessage(EnrichedTemperature.class, this::onReceiveTemperature)
                     .onMessage(PowerAirCondition.class, this::onPowerAirConditionOff)
