@@ -85,11 +85,11 @@ public class AirCondition extends AbstractBehavior<AirCondition.AirConditionComm
     private Behavior<AirConditionCommand> onReceiveTemperature(EnrichedTemperature r) {
         getContext().getLog().info("Aircondition reading {}", r.value);
         // TODO: process temperature
-        if(r.value >= 15) {
+        if(r.value >= 15 && !this.active) {
             getContext().getLog().info("Aircondition actived");
             this.active = true;
         }
-        else {
+        else if (!this.active) {
             getContext().getLog().info("Aircondition deactived");
             this.active =  false;
         }
@@ -107,12 +107,13 @@ public class AirCondition extends AbstractBehavior<AirCondition.AirConditionComm
     }
 
     private Behavior<AirConditionCommand> onPowerAirConditionOn(PowerAirCondition r) {
-        this.timer.startTimerWithFixedDelay(new CheckTemperature(), Duration.ofSeconds(15));
         if(r.value == true) {
+            this.timer.startTimerWithFixedDelay(new CheckTemperature(), Duration.ofSeconds(15));
             getContext().getLog().info("Turning Aircondition on");
             return Behaviors.receive(AirConditionCommand.class)
                     .onMessage(EnrichedTemperature.class, this::onReceiveTemperature)
                     .onMessage(PowerAirCondition.class, this::onPowerAirConditionOff)
+                    .onMessage(CheckTemperature.class, this::checkTemperature)
                     .onSignal(PostStop.class, signal -> onPostStop())
                     .build();
         }
