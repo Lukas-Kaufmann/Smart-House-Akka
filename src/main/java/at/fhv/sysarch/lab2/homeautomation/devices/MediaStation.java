@@ -46,6 +46,8 @@ public class MediaStation extends AbstractBehavior<MediaStation.MediaCommand> {
             getContext().getLog().info("Media Station started playing a movie");
             blinds.tell(new Blinds.MovieStartedPlaying());
             this.playing = true;
+        } else {
+            getContext().getLog().info("A Movie is already playing, unable to start a new one");
         }
         return this;
     }
