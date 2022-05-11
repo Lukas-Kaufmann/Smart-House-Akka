@@ -10,6 +10,7 @@ import akka.actor.typed.javadsl.Receive;
 import at.fhv.sysarch.lab2.homeautomation.devices.AirCondition;
 import at.fhv.sysarch.lab2.homeautomation.devices.Blinds;
 import at.fhv.sysarch.lab2.homeautomation.devices.MediaStation;
+import at.fhv.sysarch.lab2.homeautomation.devices.WeatherSensor;
 import at.fhv.sysarch.lab2.homeautomation.simulator.TemperatureSimulator;
 import at.fhv.sysarch.lab2.homeautomation.simulator.WeatherSimulator;
 
@@ -29,6 +30,7 @@ public class HomeAutomationController extends AbstractBehavior<Void>{
         ActorRef<Blinds.BlindsCommand> blinds = getContext().spawn(Blinds.create(), "Blinds");
         ActorRef<MediaStation.MediaCommand> mediaStation = getContext().spawn(MediaStation.create(blinds), "MediaStation");
         ActorRef<WeatherSimulator.WeatherSimCommand> weatherSim = getContext().spawn(WeatherSimulator.create(), "WeatherSimulator");
+        ActorRef<WeatherSensor.Command> weatherSensor =getContext().spawn(WeatherSensor.create(weatherSim, blinds), "WeatherSensor");
 
         getContext().getLog().info("HomeAutomation Application started");
     }

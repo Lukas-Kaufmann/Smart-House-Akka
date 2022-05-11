@@ -3,6 +3,7 @@ package at.fhv.sysarch.lab2.homeautomation.simulator;
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.*;
+import at.fhv.sysarch.lab2.homeautomation.devices.WeatherSensor;
 
 import java.time.Duration;
 import java.util.Random;
@@ -35,15 +36,14 @@ public class WeatherSimulator extends AbstractBehavior<WeatherSimulator.WeatherS
     }
 
     public static class GetWeather implements WeatherSimCommand {
-        final ActorRef<Void> sender; //TODO replace void with
-        public GetWeather(ActorRef<Void> sender) {
+        final ActorRef<WeatherSensor.Command> sender;
+        public GetWeather(ActorRef<WeatherSensor.Command> sender) {
             this.sender = sender;
         }
     }
 
     private WEATHER currentWeather;
     private TimerScheduler<WeatherSimCommand> timer;
-
 
     public static Behavior<WeatherSimCommand> create() {
         return Behaviors.setup(context -> Behaviors.withTimers(timer -> new WeatherSimulator(context, timer)));
@@ -60,10 +60,17 @@ public class WeatherSimulator extends AbstractBehavior<WeatherSimulator.WeatherS
     @Override
     public Receive<WeatherSimCommand> createReceive() {
         return newReceiveBuilder()
+                .onMessage(GetWeather.class, this::onGetWeather)
                 .onMessage(RandomWeather.class, (RandomWeather msg) -> setRandomWeather())
                 .onMessage(SetWeather.class, this::onSetWeather)
                 .onMessage(RandomWeatherStep.class, (RandomWeatherStep m) -> onRandomStep())
                 .build();
+    }
+
+    private Behavior<WeatherSimCommand> onGetWeather(GetWeather msg) {
+        getContext().getLog().info("WeatherSimulator sending {}", this.currentWeather);
+        msg.sender.tell(new WeatherSensor.ReceiveWeather(this.currentWeather));
+        return this;
     }
 
     private Behavior<WeatherSimCommand> onSetWeather(SetWeather msg) {
