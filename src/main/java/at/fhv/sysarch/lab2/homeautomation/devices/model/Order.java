@@ -1,16 +1,16 @@
 package at.fhv.sysarch.lab2.homeautomation.devices.model;
 
 public class Order {
-    private String productName;
+    private Product product;
     private int amount;
 
-    public Order(String productName, int amount) {
-        this.productName = productName;
+    public Order(Product product, int amount) {
+        this.product = product;
         this.amount = amount;
     }
 
-    public String getProductName() {
-        return productName;
+    public Product getProduct() {
+        return product;
     }
 
     public int getAmount() {

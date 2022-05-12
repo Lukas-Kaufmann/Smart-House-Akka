@@ -28,7 +28,6 @@ public class HomeAutomationController extends AbstractBehavior<Void>{
         ActorRef<MediaStation.MediaCommand> mediaStation = getContext().spawn(MediaStation.create(blinds), "MediaStation");
         ActorRef<WeatherSimulator.WeatherSimCommand> weatherSim = getContext().spawn(WeatherSimulator.create(), "WeatherSimulator");
         ActorRef<WeatherSensor.Command> weatherSensor = getContext().spawn(WeatherSensor.create(weatherSim, blinds), "WeatherSensor");
-
         ActorRef<Fridge.Command> fridge = getContext().spawn(Fridge.create(), "Fridge");
 
         getContext().getLog().info("HomeAutomation Application started");

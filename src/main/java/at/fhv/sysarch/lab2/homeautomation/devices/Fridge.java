@@ -6,10 +6,12 @@ import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Receive;
+import at.fhv.sysarch.lab2.homeautomation.devices.fridge.OrderProcessor;
 import at.fhv.sysarch.lab2.homeautomation.devices.model.Order;
 import at.fhv.sysarch.lab2.homeautomation.devices.model.Product;
 import at.fhv.sysarch.lab2.homeautomation.devices.model.ProductAmount;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,7 +35,7 @@ public class Fridge extends AbstractBehavior<Fridge.Command> {
     }
 
     private double maxWeight = 200;
-    private double maxAmount = 50;
+    private int maxAmount = 50;
     private List<ProductAmount> storage;
     private List<Order> pastOrders;
 
@@ -59,6 +61,16 @@ public class Fridge extends AbstractBehavior<Fridge.Command> {
 
     private Behavior<Command> onPlaceOrder(OrderProduct msg) {
         //TODO spawn child process
+        ActorRef<OrderProcessor.Command> processor = getContext().spawn(OrderProcessor.create(
+                getContext().getSelf(),
+                this.maxWeight,
+                this.maxAmount,
+                Collections.unmodifiableList(this.storage)
+        ), "processor");
+        Order order = null; //TODO
+
+        processor.tell(new OrderProcessor.ProcessOrder(order));
+
         return this;
     }
 
