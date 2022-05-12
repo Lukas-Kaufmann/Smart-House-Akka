@@ -16,4 +16,6 @@ public class Product {
     public double getWeight() {
         return weight;
     }
+
+
 }

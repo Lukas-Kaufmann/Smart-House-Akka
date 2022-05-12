@@ -86,13 +86,17 @@ public class RestController {
         return "OK";
     }
 
-
     @GetMapping("/fridge/order/{name}/{amount}/{weight}")
-    public String order(@PathVariable String name, @PathVariable String amount, @PathVariable String weight) {
-        int amountI = Integer.parseInt(amount);
-        double weightD = Double.parseDouble(weight);
-        Fridge.instanceRef.tell(new Fridge.OrderProduct(name, weightD, amountI));
+    public String order(@PathVariable String name, @PathVariable int amount, @PathVariable double weight) {
+//        int amountI = Integer.parseInt(amount);
+//        double weightD = Double.parseDouble(weight);
+        Fridge.instanceRef.tell(new Fridge.OrderProduct(name, weight, amount));
         return "OK";
     }
 
+    @GetMapping("/fridge/consume/{name}/{amount}")
+    public String consume(@PathVariable String name, @PathVariable int amount) {
+        Fridge.instanceRef.tell(new Fridge.ConsumeProduct(name, amount));
+        return "OK";
+    }
 }

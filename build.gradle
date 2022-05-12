@@ -3,7 +3,6 @@ plugins {
     id 'application'
     id 'org.springframework.boot' version '2.6.7'
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-    id "com.github.node-gradle.node" version "3.2.1"
 }
 
 group 'at.fhv.lab2'
@@ -11,17 +10,6 @@ version '1.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
-}
-npm_run_build {
-    inputs.files fileTree("src/main/js/smart-house-control-panel/public")
-    inputs.files fileTree("src/main/js/smart-house-control-panel/src")
-
-    inputs.file 'src/main/js/smart-house-control-panel/package.json'
-    inputs.file 'src/main/js/smart-house-control-panel/package-lock.json'
-}
-
-node {
-    nodeProjectDir = file("src/main/js/smart-house-control-panel")
 }
 
 dependencies {
@@ -42,16 +30,6 @@ application {
 
 run {
     standardInput = System.in
-}
-
-tasks.register("copyFrontEnd", Copy) {
-    dependsOn tasks.npm_run_build
-    from layout.projectDirectory.dir("src/main/js/smart-house-control-panel/build")
-    into layout.projectDirectory.dir("src/main/resources/static/build")
-}
-
-build {
-    dependsOn tasks.copyFrontEnd
 }
 
 test {

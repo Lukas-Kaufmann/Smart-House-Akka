@@ -4,6 +4,7 @@ import TemperatureControls from "./TemperatureControls";
 import WeatherControls from "./WeatherControls";
 import {Card, CardContent} from "@mui/material";
 import MediaStationControls from "./MediaStationControls";
+import FridgeControls from "./FridgeControls";
 
 function ControlPanel() {
 
@@ -30,6 +31,15 @@ function ControlPanel() {
                     </CardContent>
                 </Card>
             </div>
+            <br/>
+            <div style={{display: "flex", flexDirection: "row", justifyContent: "space-around"}}>
+                <Card sx={{minWidth: 400}}>
+                    <CardContent>
+                        <FridgeControls/>
+                    </CardContent>
+                </Card>
+            </div>
+
         </div>
     );
 }

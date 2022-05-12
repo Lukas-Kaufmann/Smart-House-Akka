@@ -84,13 +84,12 @@ public class AirCondition extends AbstractBehavior<AirCondition.AirConditionComm
 
     private Behavior<AirConditionCommand> onReceiveTemperature(EnrichedTemperature r) {
         getContext().getLog().info("Aircondition reading {}", r.value);
-        if(r.value >= 20 && !this.active) {
-            getContext().getLog().info("Aircondition actived");
+        if(r.value >= 20) {
+            getContext().getLog().info("Aircondition running");
             this.active = true;
         }
-        else if (!this.active) {
-            getContext().getLog().info("Aircondition deactived");
-            this.active =  false;
+        else {
+            getContext().getLog().info("Aircondition not running");
         }
 
         return Behaviors.same();
@@ -109,6 +108,8 @@ public class AirCondition extends AbstractBehavior<AirCondition.AirConditionComm
         if(r.value == true) {
             this.timer.startTimerWithFixedDelay(new CheckTemperature(), Duration.ofSeconds(15));
             getContext().getLog().info("Turning Aircondition on");
+            this.poweredOn = true;
+            this.active = false;
             return Behaviors.receive(AirConditionCommand.class)
                     .onMessage(EnrichedTemperature.class, this::onReceiveTemperature)
                     .onMessage(PowerAirCondition.class, this::onPowerAirConditionOff)

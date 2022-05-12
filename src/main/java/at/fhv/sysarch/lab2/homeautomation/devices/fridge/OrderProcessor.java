@@ -9,6 +9,7 @@ import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import at.fhv.sysarch.lab2.homeautomation.devices.Fridge;
 import at.fhv.sysarch.lab2.homeautomation.devices.model.Order;
+import at.fhv.sysarch.lab2.homeautomation.devices.model.Product;
 import at.fhv.sysarch.lab2.homeautomation.devices.model.ProductAmount;
 
 import java.util.List;
@@ -49,8 +50,19 @@ public class OrderProcessor extends AbstractBehavior<OrderProcessor.Command> {
     }
 
     private Behavior<Command> onProcess(ProcessOrder msg) {
+        getContext().getLog().info("Processor handling order for " + msg.order.getProduct().getName());
         //TODO
-        return this;
+        int numberOfItemsInStorage = this.storage.stream().mapToInt(item -> item.getAmount()).sum();
+        double totalWeight = this.storage.stream().mapToDouble(item -> item.getAmount() * item.getProduct().getWeight()).sum();
+
+        if (numberOfItemsInStorage + msg.order.getAmount() < this.maxAmount && totalWeight + (msg.order.getAmount() * msg.order.getProduct().getWeight()) < this.maxWeight) {
+            getContext().getLog().info("Order is Ok, can be added to the fridge");
+            this.fridge.tell(new Fridge.AddProduct(new ProductAmount(msg.order.getProduct(), msg.order.getAmount())));
+        } else {
+            getContext().getLog().info("Cant Process order Fridge too full");
+        }
+
+        return Behaviors.stopped();
     }
 
     private Behavior<Command> onPostStop(PostStop signal) {

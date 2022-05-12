@@ -9,6 +9,15 @@ public class ProductAmount {
         this.amount = amount;
     }
 
+    public boolean consume(int consumeAmount) {
+        if (consumeAmount > amount) {
+            return false;
+        }
+
+        this.amount -= consumeAmount;
+        return true;
+    }
+
     public Product getProduct() {
         return product;
     }
