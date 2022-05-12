@@ -17,6 +17,8 @@ public class TemperatureSimulator extends AbstractBehavior<TemperatureSimulator.
 
     public static final class SetTemperatureRandomly implements TempSimCommand {}
 
+    //TODO intermediate tempSensor
+
     public static final class SetTemperatureTo implements TempSimCommand {
         Double value;
 

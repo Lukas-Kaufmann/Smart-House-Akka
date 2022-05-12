@@ -1,6 +1,7 @@
 package at.fhv.sysarch.lab2.homeautomation.rest;
 
 import at.fhv.sysarch.lab2.homeautomation.devices.AirCondition;
+import at.fhv.sysarch.lab2.homeautomation.devices.Fridge;
 import at.fhv.sysarch.lab2.homeautomation.devices.MediaStation;
 import at.fhv.sysarch.lab2.homeautomation.simulator.TemperatureSimulator;
 import at.fhv.sysarch.lab2.homeautomation.simulator.WeatherSimulator;
@@ -70,6 +71,12 @@ public class RestController {
     @GetMapping("/stopMovie")
     public String stopMovie() {
         MediaStation.instanceRef.tell(new MediaStation.StopMovie());
+        return "OK";
+    }
+
+    @GetMapping("/fridge/getProducts")
+    public String getProducts() {
+        Fridge.instanceRef.tell(new Fridge.GetProducts());
         return "OK";
     }
 
