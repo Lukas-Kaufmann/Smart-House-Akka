@@ -80,4 +80,19 @@ public class RestController {
         return "OK";
     }
 
+    @GetMapping("/fridge/orders")
+    public String getOrders() {
+        Fridge.instanceRef.tell(new Fridge.GetOrders());
+        return "OK";
+    }
+
+
+    @GetMapping("/fridge/order/{name}/{amount}/{weight}")
+    public String order(@PathVariable String name, @PathVariable String amount, @PathVariable String weight) {
+        int amountI = Integer.parseInt(amount);
+        double weightD = Double.parseDouble(weight);
+        Fridge.instanceRef.tell(new Fridge.OrderProduct(name, weightD, amountI));
+        return "OK";
+    }
+
 }

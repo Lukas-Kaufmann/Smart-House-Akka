@@ -52,6 +52,8 @@ public class Fridge extends AbstractBehavior<Fridge.Command> {
     public Receive<Command> createReceive() {
         return newReceiveBuilder()
                 .onMessage(GetProducts.class, this::onGetProducts)
+                .onMessage(OrderProduct.class, this::onPlaceOrder)
+                .onMessage(GetOrders.class, this::onGetOrders)
                 .build();
     }
 
@@ -61,7 +63,8 @@ public class Fridge extends AbstractBehavior<Fridge.Command> {
     }
 
     private Behavior<Command> onGetOrders(GetOrders msg) {
-        //TODO
+        String logString = "Orders:\n" + storage.stream().map(order -> order.getAmount() + " of " + order.getProduct().getName()).collect(Collectors.joining("\n"));
+        getContext().getLog().info(logString);
         return this;
     }
 
